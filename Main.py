@@ -1,7 +1,4 @@
-from tkinter import *
+from App import *
 
-window=Tk()
-window.geometry("1250x800")
-window.title("StudyBuddy App")
-
-window.mainloop()
+if __name__ == "__main__":
+    app = App()
