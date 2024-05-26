@@ -18,7 +18,7 @@ class App():
         self.sidebar_label.pack(pady=25, padx=25)
 
         # Home button in the sidebar
-        self.home_button = Button(self.sidebar_frame, text="Home", height=2, width=10, bg='green')
+        self.home_button = Button(self.sidebar_frame, text="Home", height=2, width=10, bg='light gray')
         self.home_button.pack(pady=5, padx=5)
 
         # Main frame
@@ -30,7 +30,7 @@ class App():
         self.bottom_frame.pack(side='bottom', fill=X)  # Fill horizontally
 
         # Exit button in the sidebar
-        self.exit_button = Button(self.sidebar_frame, text="Exit", height=2, width=10, bg='green', command=self.exit)
+        self.exit_button = Button(self.sidebar_frame, text="Exit", height=2, width=10, background="light gray", command=self.exit)
         self.exit_button.pack(pady=275, padx=5)
 
         self.dirname = path.dirname(__file__)

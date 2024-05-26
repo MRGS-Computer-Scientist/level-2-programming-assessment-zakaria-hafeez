@@ -3,4 +3,4 @@ w_height = 700
 
 app_title = "My App"
 
-bg_color = "#E7DDFF"
+bg_color = "#FFFFFF"
