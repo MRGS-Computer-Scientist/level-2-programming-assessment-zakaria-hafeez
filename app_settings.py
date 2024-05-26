@@ -1,4 +1,4 @@
-w_width = 500
+w_width = 1200
 w_height = 700
 
 app_title = "My App"
