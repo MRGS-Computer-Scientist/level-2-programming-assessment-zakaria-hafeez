@@ -1,6 +1,6 @@
-w_width = 1200
-w_height = 700
+w_width = 1600
+w_height = 800
 
-app_title = "My App"
+app_title = "Study Buddy"
 
 bg_color = "#FFFFFF"
