@@ -21,6 +21,10 @@ class App():
         self.home_button = Button(self.sidebar_frame, text="Home", height=2, width=10, bg='light gray')
         self.home_button.pack(pady=5, padx=5)
 
+        # Calendar button in the sidebar
+        self.calendar_button = Button(self.sidebar_frame, text="Calendar", height=2, width=10, bg='light gray')
+        self.calendar_button.pack(pady=5, padx=5)
+
         # Main frame
         self.main_frame = Frame(self.window, background=bg_color, width=w_width, height=(w_height-200))
         self.main_frame.pack(fill=BOTH, expand=True)  # Fill the available space
@@ -29,15 +33,14 @@ class App():
         self.bottom_frame = Frame(self.window, background=bg_color, width=w_width, height=100)
         self.bottom_frame.pack(side='bottom', fill=X)  # Fill horizontally
 
+        # Spacer frame to push the Exit button to the bottom
+        self.spacer_frame = Frame(self.sidebar_frame, height=250, bg="light gray")
+        self.spacer_frame.pack(pady=5, padx=5)
+
         # Exit button in the sidebar
         self.exit_button = Button(self.sidebar_frame, text="Exit", height=2, width=10, background="light gray", command=self.exit)
-        self.exit_button.pack(pady=275, padx=5)
-
-        self.dirname = path.dirname(__file__)
-        self.filename = path.join(self.dirname, 'images/')
-
-        print("The path is", self.filename)
-
+        self.exit_button.pack(pady=5, padx=5)
+        
         self.window.mainloop()
 
     def exit(self):
