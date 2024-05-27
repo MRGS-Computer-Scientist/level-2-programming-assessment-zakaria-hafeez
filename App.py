@@ -48,9 +48,9 @@ class App():
         self.spacer_frame = Frame(self.sidebar_frame, height=250, bg="light gray")
         self.spacer_frame.pack(pady=5, padx=5)
 
-        # Exit button in the sidebar
+       # Exit button in the sidebar
         self.exit_button = Button(self.sidebar_frame, text="Exit", height=2, width=10, background="light gray", font=self.exit_button_font,
-        borderwidth=0, highlightthickness=0)
+        borderwidth=0, highlightthickness=0, command=self.exit) 
         self.exit_button.pack(pady=5, padx=5)
         self.exit_button.bind("<Enter>", self.on_enter_exit)
         self.exit_button.bind("<Leave>", self.on_leave)
