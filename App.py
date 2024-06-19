@@ -8,7 +8,7 @@ class App:
     def __init__(self):
         self.window = Tk()
         self.window.geometry("800x600")
-        self.window.title("Study App")
+        self.window.title("Study Buddy")
         self.window.config(bg="white")
 
         # Fonts
@@ -24,7 +24,7 @@ class App:
         self.sidebar_frame.pack(side='left', fill=Y)
 
         # Title in Nav (With Font)
-        self.sidebar_label = Label(self.sidebar_frame, text="Study App", bg="light gray", font=self.title_font)
+        self.sidebar_label = Label(self.sidebar_frame, text="Study Buddy", bg="light gray", font=self.title_font)
         self.sidebar_label.pack(pady=25, padx=25)
 
         # Home button in the sidebar
