@@ -12,13 +12,8 @@ class App:
 
     def __init__(self):
         self.window = Tk()
-<<<<<<< HEAD
         self.window.geometry("1200x800")  # Set initial size
         self.window.title("Study App")
-=======
-        self.window.geometry("800x600")
-        self.window.title("Study Buddy")
->>>>>>> 6b22450c99209d772c03f1c28b7744aa233efdbb
         self.window.config(bg="white")
 
         # Fonts
