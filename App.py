@@ -1,13 +1,18 @@
 from tkinter import *
-from tkinter import font, ttk
-import calendar
+from tkinter import font
+from tkinter import ttk, messagebox
 from datetime import datetime
+import tkinter as tk
+import json
+import calendar
+import os
+import time
 
 class App:
 
     def __init__(self):
         self.window = Tk()
-        self.window.geometry("800x600")
+        self.window.geometry("1200x800")  # Set initial size
         self.window.title("Study App")
         self.window.config(bg="white")
 
@@ -52,12 +57,12 @@ class App:
         self.spacer_frame = Frame(self.sidebar_frame, height=250, bg="light gray")
         self.spacer_frame.pack(pady=5, padx=5)
 
-       # Exit button in the sidebar
+        # Exit button in the sidebar
         self.exit_button = Button(self.sidebar_frame, text="Exit", height=2, width=10, background="light gray", font=self.exit_button_font,
                                   borderwidth=0, highlightthickness=0, command=self.exit)
         self.exit_button.pack(pady=5, padx=5)
         self.exit_button.bind("<Enter>", self.on_enter_exit)
-        self.exit_button.bind("<Leave>", self.on_leave)
+        self.exit_button.bind("<Leave>", self.on_leave_exit)
 
         # Main content area
         self.content_frame = Frame(self.window, background="white")
@@ -71,7 +76,7 @@ class App:
     def show_home(self):
         self.clear_content()
         # Hi, 'NAME!' label
-        self.name_label = Label(self.content_frame, text="Hi, 'NAME!'", font=self.header_font, bg="white")
+        self.name_label = Label(self.content_frame, text="Hi, 'Yaneth!'", font=self.header_font, bg="white")
         self.name_label.pack(anchor='nw')
 
         # Upcoming Assessments label
@@ -100,102 +105,58 @@ class App:
 
     def show_calendar(self):
         self.clear_content()
-        # Calendar content
-        calendar_label = Label(self.content_frame, text="Calendar", font=self.header_font, bg="white")
-        calendar_label.pack(anchor='nw')
 
-        # Year entry
-        self.year_entry = Entry(self.content_frame, width=5, font=self.content_font)
-        self.year_entry.pack(anchor='nw', padx=(0, 10), pady=10)
-        self.year_entry.insert(0, datetime.now().year)
+        self.calendar_label = Label(self.content_frame, text="Calendar", font=self.header_font, bg="white")
+        self.calendar_label.pack(anchor='nw', pady=(20, 10))
 
-        # Month combobox
-        self.month_combobox = ttk.Combobox(self.content_frame, values=list(range(1, 13)), font=self.content_font, width=3)
-        self.month_combobox.pack(anchor='nw', padx=(0, 10), pady=10)
-        self.month_combobox.set(datetime.now().month)
+        self.calendar_desc_label = Label(self.content_frame, text="Use this Calendar Functionality to keep track of your assessments as we will remind you of anything that is coming up soon. We will help you stay on top and on track with your work and we will help you stay organised if you were our calendar function.", bg="white", font=("Arial", 12), wraplength=700, anchor="w", justify="left")
+        self.calendar_desc_label.pack(anchor='nw', pady=(10, 10))
 
-        # Show calendar button
-        show_button = Button(self.content_frame, text="Show Calendar", command=self.display_calendar)
-        show_button.pack(anchor='nw', pady=10)
+        # Frame for year and month input
+        self.input_frame = Frame(self.content_frame, bg="white")
+        self.input_frame.pack(pady=20)
 
-        self.reminders = {}  # Dictionary to store reminders
+        # Entry field for year
+        Label(self.input_frame, text="Year:", bg="white").grid(row=0, column=0)
+        self.year_entry = Entry(self.input_frame)
+        self.year_entry.insert(END, datetime.now().year)
+        self.year_entry.grid(row=0, column=1)
 
-    def display_calendar(self):
-        # Get the year and month from entry fields
-        year = int(self.year_entry.get())
-        month = int(self.month_combobox.get())
+        # Combobox for month selection
+        Label(self.input_frame, text="Month:", bg="white").grid(row=0, column=2)
+        self.month_combobox = ttk.Combobox(self.input_frame, values=list(range(1, 13)))
+        self.month_combobox.grid(row=0, column=3)
+        self.month_combobox.current(datetime.today().month - 1)  # Set default value to the current month
 
-        # Create a calendar object
-        cal = calendar.monthcalendar(year, month)
+        # Button to display calendar
+        self.display_button = Button(self.input_frame, text="Display Calendar", command=self.display_calendar)
+        self.display_button.grid(row=0, column=4, padx=10)
 
-        # Create a new Tkinter window for the calendar
-        calendar_window = Toplevel(self.window)
-        calendar_window.title(f"Calendar - {calendar.month_name[month]} {year}")
+        # Frame for displaying calendar
+        self.days_frame = Frame(self.content_frame, bg="lightblue")
+        self.days_frame.pack(expand=True, fill=BOTH, padx=20, pady=20)
 
-        # Create labels to display the days of the week
-        days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-        for i, day in enumerate(days):
-            Label(calendar_window, text=day, width=5, font=('Arial', 10, 'bold')).grid(row=0, column=i)
-
-        # Display the calendar data
-        for week_num, week in enumerate(cal, start=1):
-            for day_num, day in enumerate(week):
-                if day != 0:
-                    # Determine the color of the label based on the day
-                    label_color = 'red' if day_num in (5, 6) else 'black'
-
-                    # Create a label for the date
-                    date_label = Label(calendar_window, text=day, width=5, font=('Arial', 10), fg=label_color)
-                    date_label.grid(row=week_num, column=day_num)
-
-                    # Bind click event to each date label
-                    date_label.bind("<Button-1>", lambda event, d=day, m=month: self.open_reminder_window(event, d, m))
-
-    def open_reminder_window(self, event, day, month):
-        # Check if there is an existing reminder for the selected date
-        if (day, month) in self.reminders:
-            existing_reminder = self.reminders[(day, month)]
-            # Open a window to display existing reminder
-            reminder_window = Toplevel(self.window)
-            reminder_window.title(f"Existing Reminder - {day}/{month}")
-
-            # Label to display existing reminder
-            Label(reminder_window, text=existing_reminder, font=('Arial', 12)).pack(pady=10)
-        else:
-            # Create a new window for adding a reminder
-            add_reminder_window = Toplevel(self.window)
-            add_reminder_window.title(f"Add Reminder - {day}/{month}")
-
-            Label(add_reminder_window, text="Reminder:", font=('Arial', 12)).pack(pady=10)
-            reminder_entry = Entry(add_reminder_window, width=40, font=('Arial', 12))
-            reminder_entry.pack(pady=10)
-
-            def save_reminder():
-                reminder_text = reminder_entry.get()
-                self.reminders[(day, month)] = reminder_text
-                add_reminder_window.destroy()
-
-            save_button = Button(add_reminder_window, text="Save", command=save_reminder)
-            save_button.pack(pady=10)
-
-    def clear_content(self):
-        # Destroy all widgets in the content frame
-        for widget in self.content_frame.winfo_children():
-            widget.destroy()
+        # Dictionary to store reminders
+        self.reminders = {}
+        self.load_reminders()  # Load reminders from file
 
     def create_assessment_frame(self, date, subject, period):
-        frame = Frame(self.assessments_frame, bg="#86D8F2", height=120, width=400)
+        frame = Frame(self.assessments_frame, bg="#86D8F2", height=150, width=600)  # Increase height and width here
         frame.pack_propagate(False)
         frame.pack(fill='x', pady=5)
 
         date_label = Label(frame, text=date, font=self.content_font, bg="#86D8F2")
-        date_label.pack(side='left', padx=25, pady=5)
+        date_label.pack(side='left', padx=25, pady=10)
 
         subject_label = Label(frame, text=subject, font=self.content_font, bg="#86D8F2")
-        subject_label.pack(side='left', padx=25, pady=5)
+        subject_label.pack(side='left', padx=25, pady=10)
 
         period_label = Label(frame, text=period, font=self.content_font, bg="#86D8F2")
-        period_label.pack(side='left', padx=25, pady=5)
+        period_label.pack(side='left', padx=25, pady=10)
+
+    def clear_content(self):
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
 
     def on_enter(self, event):
         event.widget.config(bg='gray')
@@ -211,6 +172,124 @@ class App:
 
     def exit(self):
         self.window.destroy()
+
+    # Function to save reminders to a JSON file
+    def save_reminders(self):
+        with open("reminders.json", "w") as file:
+            json.dump(self.reminders, file)
+
+    # Function to load reminders from a JSON file
+    def load_reminders(self):
+        if os.path.exists("reminders.json"):
+            with open("reminders.json", "r") as file:
+                self.reminders = json.load(file)
+                # Convert any single reminder strings to lists
+                self.reminders = {k: [v] if isinstance(v, str) else v for k, v in self.reminders.items()}
+                # Ensure all reminder entries are lists
+                self.reminders = {k: v for k, v in self.reminders.items() if isinstance(v, list)}
+                self.reminders = {k: v for k, v in self.reminders.items() if v}
+
+    # Function to add a reminder
+    def add_reminder(self, date, reminder):
+        if date in self.reminders:
+            self.reminders[date].append(reminder)
+        else:
+            self.reminders[date] = [reminder]
+        self.save_reminders()
+
+    # Function to remove a reminder
+    def remove_reminder(self, date, reminder):
+        if date in self.reminders:
+            if reminder in self.reminders[date]:
+                self.reminders[date].remove(reminder)
+                if not self.reminders[date]:  # If the list is empty, remove the key
+                    del self.reminders[date]
+                self.save_reminders()
+                return True
+        return False
+
+    # Function to display the calendar for the selected month and year
+    def display_calendar(self):
+        for widget in self.days_frame.winfo_children():
+            widget.destroy()
+
+        try:
+            year = int(self.year_entry.get())
+            month = int(self.month_combobox.get())
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a valid year and month.")
+            return
+
+        cal = calendar.Calendar()
+        days = cal.itermonthdays(year, month)
+
+        # Display days of the week
+        weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        for col, weekday in enumerate(weekdays):
+            day_label = Label(self.days_frame, text=weekday, bg="lightblue", width=10)
+            day_label.grid(row=0, column=col, padx=1, pady=1, sticky="nsew")
+
+        row = 1
+        column = 0
+
+        for day in days:
+            if day != 0:
+                date_str = f"{year}-{month:02d}-{day:02d}"
+                day_frame = Frame(self.days_frame, bg="white", borderwidth=1, relief="solid")
+                day_frame.grid(row=row, column=column, padx=1, pady=1, sticky="nsew")
+                day_label = Label(day_frame, text=str(day), bg="white")
+                day_label.pack(anchor='nw')
+                reminder_button = Button(day_frame, text="+", command=lambda d=date_str: self.add_reminder_dialog(d))
+                reminder_button.pack(anchor='ne')
+                if date_str in self.reminders:
+                    for reminder in self.reminders[date_str]:
+                        reminder_frame = Frame(day_frame, bg="white")
+                        reminder_frame.pack(anchor='sw', fill='x')
+                        reminder_label = Label(reminder_frame, text=reminder, bg="white")
+                        reminder_label.pack(side='left')
+                        delete_button = Button(reminder_frame, text="x", command=lambda d=date_str, r=reminder: self.delete_reminder_dialog(d, r))
+                        delete_button.pack(side='right')
+            column += 1
+            if column == 7:
+                column = 0
+                row += 1
+
+        self.days_frame.grid_rowconfigure(list(range(row + 1)), weight=1)
+        self.days_frame.grid_columnconfigure(list(range(7)), weight=1)
+
+    # Function to show a dialog to add a reminder
+    def add_reminder_dialog(self, date):
+        dialog = Toplevel(self.window)
+        dialog.title("Add Reminder")
+        dialog.geometry("300x200")
+
+        Label(dialog, text=f"Add reminder for {date}:").pack(pady=10)
+        reminder_entry = Entry(dialog)
+        reminder_entry.pack(pady=10)
+        Button(dialog, text="Add", command=lambda: self.add_reminder_from_dialog(date, reminder_entry.get(), dialog)).pack(pady=10)
+
+    # Function to handle adding reminder from the dialog
+    def add_reminder_from_dialog(self, date, reminder, dialog):
+        if reminder:
+            self.add_reminder(date, reminder)
+            self.display_calendar()
+            dialog.destroy()
+
+    # Function to show a dialog to delete a reminder
+    def delete_reminder_dialog(self, date, reminder):
+        dialog = Toplevel(self.window)
+        dialog.title("Delete Reminder")
+        dialog.geometry("300x200")
+
+        Label(dialog, text=f"Are you sure you want to delete the reminder '{reminder}' on {date}?").pack(pady=5)
+        Button(dialog, text="Delete", command=lambda: self.delete_reminder(date, reminder, dialog)).pack(pady=10)
+        Button(dialog, text="Cancel", command=dialog.destroy).pack(pady=10)
+
+    # Function to handle deleting a reminder from the dialog
+    def delete_reminder(self, date, reminder, dialog):
+        if self.remove_reminder(date, reminder):
+            self.display_calendar()
+            dialog.destroy()
 
 if __name__ == "__main__":
     app = App()
