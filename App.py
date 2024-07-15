@@ -2,17 +2,17 @@ from tkinter import *
 from tkinter import font
 from tkinter import ttk, messagebox
 from datetime import datetime
-import tkinter as tk
 import json
 import calendar
 import os
-import time
 
 class App:
 
     def __init__(self):
         self.window = Tk()
-        self.window.geometry("1200x800")  # Set initial size
+        screen_width = self.window.winfo_screenwidth()
+        screen_height = self.window.winfo_screenheight()
+        self.window.geometry(f"{screen_width}x{screen_height}")  # Set initial size to screen size
         self.window.title("Study App")
         self.window.config(bg="white")
 
@@ -60,13 +60,17 @@ class App:
         # Exit button in the sidebar
         self.exit_button = Button(self.sidebar_frame, text="Exit", height=2, width=10, background="light gray", font=self.exit_button_font,
                                   borderwidth=0, highlightthickness=0, command=self.exit)
-        self.exit_button.pack(pady=5, padx=5)
+        self.exit_button.pack(side='bottom', anchor='sw', pady=80, padx=60)  # Positioned at the bottom left
         self.exit_button.bind("<Enter>", self.on_enter_exit)
         self.exit_button.bind("<Leave>", self.on_leave_exit)
 
         # Main content area
         self.content_frame = Frame(self.window, background="white")
         self.content_frame.pack(side='left', fill=BOTH, expand=True, padx=20, pady=20)
+
+        # Dictionary to store reminders
+        self.reminders = {}
+        self.load_reminders()  # Load reminders from file
 
         # Show the home screen by default
         self.show_home()
@@ -76,32 +80,26 @@ class App:
     def show_home(self):
         self.clear_content()
         # Hi, 'NAME!' label
-        self.name_label = Label(self.content_frame, text="Hi, 'Yaneth!'", font=self.header_font, bg="white")
+        self.name_label = Label(self.content_frame, text="Hi, 'Buddy!'", font=self.header_font, bg="white")
         self.name_label.pack(anchor='nw')
 
-        # Upcoming Assessments label
-        self.upcoming_label = Label(self.content_frame, text="Upcoming Assessments", font=self.subheader_font, bg="white")
+        # Upcoming Events label
+        self.upcoming_label = Label(self.content_frame, text="Upcoming Events", font=self.subheader_font, bg="white")
         self.upcoming_label.pack(anchor='nw', pady=(20, 10))
 
         self.assessments_frame = Frame(self.content_frame, bg="white")
         self.assessments_frame.pack(anchor='nw', pady=(0, 20))
 
-        # Assessment frames
-        self.assessments = [
-            ("January 18th", "English Essay", "Period 4"),
-            ("February 9th", "Calculus", "Period 2"),
-            ("April 14th", "Physics, Mechanics", "Period 5"),
-        ]
-
-        for assessment in self.assessments:
-            self.create_assessment_frame(*assessment)
+        # Display user-entered reminders
+        for date, reminders in self.reminders.items():
+            for reminder in reminders:
+                self.create_assessment_frame(date, *reminder.split(", "))
 
     def show_results(self):
         self.clear_content()
         # Results content
         results_label = Label(self.content_frame, text="Results", font=self.header_font, bg="white")
         results_label.pack(anchor='nw')
-        # Add more widgets to show results as needed
 
     def show_calendar(self):
         self.clear_content()
@@ -136,23 +134,24 @@ class App:
         self.days_frame = Frame(self.content_frame, bg="lightblue")
         self.days_frame.pack(expand=True, fill=BOTH, padx=20, pady=20)
 
-        # Dictionary to store reminders
-        self.reminders = {}
-        self.load_reminders()  # Load reminders from file
+        self.display_calendar()
 
-    def create_assessment_frame(self, date, subject, period):
-        frame = Frame(self.assessments_frame, bg="#86D8F2", height=150, width=600)  # Increase height and width here
+    def create_assessment_frame(self, date, subject, time, name):
+        frame = Frame(self.assessments_frame, bg="#86D8F2", height=200, width=800)  # Increase height and width here
         frame.pack_propagate(False)
-        frame.pack(fill='x', pady=5)
+        frame.pack(fill='x', pady=10)
 
         date_label = Label(frame, text=date, font=self.content_font, bg="#86D8F2")
-        date_label.pack(side='left', padx=25, pady=10)
+        date_label.pack(side='left', padx=50, pady=20)  # Adjust padding
 
         subject_label = Label(frame, text=subject, font=self.content_font, bg="#86D8F2")
-        subject_label.pack(side='left', padx=25, pady=10)
+        subject_label.pack(side='left', padx=50, pady=20)  # Adjust padding
 
-        period_label = Label(frame, text=period, font=self.content_font, bg="#86D8F2")
-        period_label.pack(side='left', padx=25, pady=10)
+        time_label = Label(frame, text=time, font=self.content_font, bg="#86D8F2")
+        time_label.pack(side='left', padx=50, pady=20)  # Adjust padding
+
+        name_label = Label(frame, text=name, font=self.content_font, bg="#86D8F2")
+        name_label.pack(side='left', padx=50, pady=20)  # Adjust padding
 
     def clear_content(self):
         for widget in self.content_frame.winfo_children():
@@ -197,7 +196,7 @@ class App:
             self.reminders[date] = [reminder]
         self.save_reminders()
 
-    # Function to remove a reminder
+    # Function to remove a reminder, allows the user to remove the reminder that they added on with a clear x symbol. Allows the user to undo their mistake.
     def remove_reminder(self, date, reminder):
         if date in self.reminders:
             if reminder in self.reminders[date]:
@@ -261,19 +260,33 @@ class App:
     def add_reminder_dialog(self, date):
         dialog = Toplevel(self.window)
         dialog.title("Add Reminder")
-        dialog.geometry("300x200")
+        dialog.geometry("300x300")
 
         Label(dialog, text=f"Add reminder for {date}:").pack(pady=10)
-        reminder_entry = Entry(dialog)
-        reminder_entry.pack(pady=10)
-        Button(dialog, text="Add", command=lambda: self.add_reminder_from_dialog(date, reminder_entry.get(), dialog)).pack(pady=10)
+        
+        Label(dialog, text="Subject:").pack(pady=5)
+        subject_entry = Entry(dialog)
+        subject_entry.pack(pady=5)
+        
+        Label(dialog, text="Time (e.g., Period 4 or 14:00):").pack(pady=5)
+        time_entry = Entry(dialog)
+        time_entry.pack(pady=5)
+        
+        Label(dialog, text="Name of item:").pack(pady=5)
+        name_entry = Entry(dialog)
+        name_entry.pack(pady=5)
+        
+        Button(dialog, text="Add", command=lambda: self.add_reminder_from_dialog(date, subject_entry.get(), time_entry.get(), name_entry.get(), dialog)).pack(pady=10)
 
     # Function to handle adding reminder from the dialog
-    def add_reminder_from_dialog(self, date, reminder, dialog):
-        if reminder:
+    def add_reminder_from_dialog(self, date, subject, time, name, dialog):
+        if subject and time and name:
+            reminder = f"{subject}, {time}, {name}"
             self.add_reminder(date, reminder)
             self.display_calendar()
             dialog.destroy()
+        else:
+            messagebox.showerror("Invalid Input", "Please fill in all fields.")
 
     # Function to show a dialog to delete a reminder
     def delete_reminder_dialog(self, date, reminder):
