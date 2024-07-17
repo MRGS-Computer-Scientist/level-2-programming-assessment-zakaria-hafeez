@@ -24,7 +24,102 @@ class App:
         self.subheader_font = font.Font(family="Arial", size=18, weight="bold")
         self.content_font = font.Font(family="Arial", size=14)
 
+        # Dictionary to store reminders
+        self.reminders = {}
+        self.load_reminders()  # Load reminders from file
+
+        # Show the login screen by default
+        self.show_login()
+
+        self.window.mainloop()
+
+    def show_login(self):
+        self.clear_content()
+        self.login_frame = Frame(self.window, bg="white")
+        self.login_frame.pack(fill=BOTH, expand=True)
+
+        self.login_label = Label(self.login_frame, text="Login", font=self.header_font, bg="white")
+        self.login_label.pack(pady=(50, 10))
+
+        Label(self.login_frame, text="Username:", font=self.content_font, bg="white").pack(pady=(10, 5))
+        self.username_entry = Entry(self.login_frame, font=self.content_font)
+        self.username_entry.pack(pady=(0, 10))
+
+        Label(self.login_frame, text="Password:", font=self.content_font, bg="white").pack(pady=(10, 5))
+        self.password_entry = Entry(self.login_frame, font=self.content_font, show='*')
+        self.password_entry.pack(pady=(0, 10))
+
+        self.login_button = Button(self.login_frame, text="Login", font=self.button_font, command=self.login)
+        self.login_button.pack(pady=(10, 5))
+
+        self.signup_button = Button(self.login_frame, text="Sign Up", font=self.button_font, command=self.show_signup)
+        self.signup_button.pack(pady=(10, 5))
+
+    def show_signup(self):
+        self.clear_content()
+        self.signup_frame = Frame(self.window, bg="white")
+        self.signup_frame.pack(fill=BOTH, expand=True)
+
+        self.signup_label = Label(self.signup_frame, text="Sign Up", font=self.header_font, bg="white")
+        self.signup_label.pack(pady=(50, 10))
+
+        Label(self.signup_frame, text="Username:", font=self.content_font, bg="white").pack(pady=(10, 5))
+        self.signup_username_entry = Entry(self.signup_frame, font=self.content_font)
+        self.signup_username_entry.pack(pady=(0, 10))
+
+        Label(self.signup_frame, text="Password:", font=self.content_font, bg="white").pack(pady=(10, 5))
+        self.signup_password_entry = Entry(self.signup_frame, font=self.content_font, show='*')
+        self.signup_password_entry.pack(pady=(0, 10))
+
+        self.signup_submit_button = Button(self.signup_frame, text="Submit", font=self.button_font, command=self.signup)
+        self.signup_submit_button.pack(pady=(10, 5))
+
+        self.back_to_login_button = Button(self.signup_frame, text="Back to Login", font=self.button_font, command=self.show_login)
+        self.back_to_login_button.pack(pady=(10, 5))
+
+    def login(self):
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+        if self.validate_login(username, password):
+            self.show_main_app()
+        else:
+            messagebox.showerror("Login Failed", "Invalid username or password")
+
+    def signup(self):
+        username = self.signup_username_entry.get()
+        password = self.signup_password_entry.get()
+        if self.save_user_credentials(username, password):
+            messagebox.showinfo("Sign Up Success", "Account created successfully! Please login.")
+            self.show_login()
+        else:
+            messagebox.showerror("Sign Up Failed", "Username already exists. Please choose another username.")
+
+    def validate_login(self, username, password):
+        if os.path.exists("users.json"):
+            with open("users.json", "r") as file:
+                users = json.load(file)
+                if username in users and users[username] == password:
+                    return True
+        return False
+
+    def save_user_credentials(self, username, password):
+        if os.path.exists("users.json"):
+            with open("users.json", "r") as file:
+                users = json.load(file)
+        else:
+            users = {}
+
+        if username in users:
+            return False
+
+        users[username] = password
+        with open("users.json", "w") as file:
+            json.dump(users, file)
+        return True
+
+    def show_main_app(self):
         # Creating the Side Bar (Grey Background)
+        self.login_frame.pack_forget()
         self.sidebar_frame = Frame(self.window, background="light gray", width=168)
         self.sidebar_frame.pack(side='left', fill=Y)
 
@@ -68,17 +163,12 @@ class App:
         self.content_frame = Frame(self.window, background="white")
         self.content_frame.pack(side='left', fill=BOTH, expand=True, padx=20, pady=20)
 
-        # Dictionary to store reminders
-        self.reminders = {}
-        self.load_reminders()  # Load reminders from file
-
-        # Show the home screen by default
         self.show_home()
 
-        self.window.mainloop()
-
     def show_home(self):
+        # Clear existing content
         self.clear_content()
+
         # Hi, 'NAME!' label
         self.name_label = Label(self.content_frame, text="Hi, 'Buddy!'", font=self.header_font, bg="white")
         self.name_label.pack(anchor='nw')
@@ -90,10 +180,17 @@ class App:
         self.assessments_frame = Frame(self.content_frame, bg="white")
         self.assessments_frame.pack(anchor='nw', pady=(0, 20))
 
-        # Display user-entered reminders
-        for date, reminders in self.reminders.items():
+        # Sort reminders by date
+        sorted_reminders = sorted(
+            ((datetime.strptime(date, '%Y-%m-%d'), reminders) for date, reminders in self.reminders.items()),
+            key=lambda x: x[0]
+        )
+
+        # Display sorted reminders
+        for date_obj, reminders in sorted_reminders:
+            date_str = date_obj.strftime('%Y-%m-%d')
             for reminder in reminders:
-                self.create_assessment_frame(date, *reminder.split(", "))
+                self.create_assessment_frame(date_str, *reminder.split(", "))
 
     def show_results(self):
         self.clear_content()
@@ -102,8 +199,10 @@ class App:
         results_label.pack(anchor='nw')
 
     def show_calendar(self):
+        # Clear previous content in the content frame
         self.clear_content()
 
+        # Create and pack the calendar-related widgets
         self.calendar_label = Label(self.content_frame, text="Calendar", font=self.header_font, bg="white")
         self.calendar_label.pack(anchor='nw', pady=(20, 10))
 
@@ -134,7 +233,14 @@ class App:
         self.days_frame = Frame(self.content_frame, bg="lightblue")
         self.days_frame.pack(expand=True, fill=BOTH, padx=20, pady=20)
 
+        # Display initial calendar
         self.display_calendar()
+
+    def clear_content(self):
+        # Clear the content frame without destroying it
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
+
 
     def create_assessment_frame(self, date, subject, time, name):
         frame = Frame(self.assessments_frame, bg="#86D8F2", height=200, width=800)  # Increase height and width here
@@ -154,7 +260,7 @@ class App:
         name_label.pack(side='left', padx=50, pady=20)  # Adjust padding
 
     def clear_content(self):
-        for widget in self.content_frame.winfo_children():
+        for widget in self.window.winfo_children():
             widget.destroy()
 
     def on_enter(self, event):
