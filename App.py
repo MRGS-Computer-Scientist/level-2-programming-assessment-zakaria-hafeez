@@ -24,7 +24,7 @@ class App:
         self.subheader_font = font.Font(family="Arial", size=18, weight="bold")
         self.content_font = font.Font(family="Arial", size=14)
 
-        # Create login page
+        # Start with login page. This will be the first page the user sees before they can access the main app. Features sign up in it as well.
         self.login_page = LoginPage(self)
         self.show_login()
 
@@ -39,6 +39,8 @@ class App:
         self.create_content_frame()
         self.show_home()
 
+
+        #Creating the sidebar. This will be the side bar that the user will see on the left side of the screen. Will be featured on every page.
     def create_sidebar(self):
         self.sidebar_frame = Frame(self.window, background="light gray", width=168)
         self.sidebar_frame.pack(side='left', fill=Y)
@@ -98,6 +100,8 @@ class App:
         results_label = Label(self.content_frame, text="Results", font=self.header_font, bg="white")
         results_label.pack(anchor='nw')
 
+
+        #Creating Main Design for the Calendar. This will be the main page that the user will see when they click on the calendar button.
     def show_calendar(self):
         self.clear_content()
 
@@ -128,6 +132,8 @@ class App:
 
         self.display_calendar()
 
+
+        #Blue boxes for the reminders. Linked to calendar so it is arranged from SOONEST to latest.
     def create_assessment_frame(self, date, subject, time, name):
         frame = Frame(self.assessments_frame, bg="#86D8F2", height=200, width=800)
         frame.pack_propagate(False)
@@ -240,6 +246,8 @@ class App:
         self.days_frame.grid_rowconfigure(list(range(row + 1)), weight=1)
         self.days_frame.grid_columnconfigure(list(range(7)), weight=1)
 
+
+        #Button to add a reminder to the calendar.
     def add_reminder_dialog(self, date):
         dialog = Toplevel(self.window)
         dialog.title("Add Reminder")
@@ -285,6 +293,7 @@ class App:
             dialog.destroy()
 
 
+    #Creating the log in page. Will be the first page the user sees before he/she can access the main app.
 class LoginPage(Frame):
 
     def __init__(self, app):
