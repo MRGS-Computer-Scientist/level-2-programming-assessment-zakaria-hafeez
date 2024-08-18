@@ -6,7 +6,7 @@ import json
 import calendar
 import os
 
-class App:
+class app:
 
     def __init__(self):
         self.window = Tk()
@@ -16,7 +16,7 @@ class App:
         self.window.title("Study App")
         self.window.config(bg="white")
 
-        # Fonts
+        # Defining all the fonts
         self.title_font = font.Font(family="Brush Script MT", size=20, weight="bold")
         self.button_font = font.Font(family="Georgia", size=14)
         self.exit_button_font = font.Font(family="Lucida Handwriting", size=14, weight="bold")
@@ -24,7 +24,7 @@ class App:
         self.subheader_font = font.Font(family="Arial", size=18, weight="bold")
         self.content_font = font.Font(family="Arial", size=14)
 
-        # Start with login page. This will be the first page the user sees before they can access the main app. Features sign up in it as well.
+        # Start with login page. This will be the first page the user sees before they can access the main app. Features sign up in it too.
         self.login_page = LoginPage(self)
         self.show_login()
 
@@ -32,7 +32,7 @@ class App:
 
     def show_login(self):
         self.login_page.pack(fill=BOTH, expand=True)
-
+    #Setting the Log In page to be the first page that displays to the user.
     def show_main_app(self):
         self.login_page.pack_forget()
         self.create_sidebar()
@@ -63,6 +63,7 @@ class App:
         self.spacer_frame = Frame(self.sidebar_frame, height=250, bg="light gray")
         self.spacer_frame.pack(pady=5, padx=5)
 
+        #Exit button, positioned in the bottom left of the page at all times. Will be on home, AND calendar page.
         self.exit_button = Button(self.sidebar_frame, text="Exit", height=2, width=10, background="light gray", font=self.exit_button_font,
                                   borderwidth=0, highlightthickness=0, command=self.exit)
         self.exit_button.pack(side='bottom', anchor='sw', pady=80, padx=60)
@@ -396,4 +397,4 @@ class LoginPage(Frame):
             messagebox.showerror("Sign Up Failed", "Please fill in all fields.")
 
 if __name__ == "__main__":
-    app = App()
+    app = app()
